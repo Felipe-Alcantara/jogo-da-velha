@@ -1,5 +1,8 @@
 # Jogo da Velha — Obrigado por jogar 🎮
 
+🎯 **Jogue agora (versão web):** https://felipe-alcantara.github.io/jogo-da-velha/  
+Abra no navegador e comece a jogar com um clique — sem instalação necessária.
+
 Uma versão leve e educativa do clássico Jogo da Velha (Tic-Tac-Toe), implementada com HTML, CSS e JavaScript puro. Projetada para ser simples, responsiva e fácil de testar no navegador.
 
 ---
