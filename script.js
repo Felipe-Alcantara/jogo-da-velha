@@ -6,10 +6,26 @@ let square = {
 let player = ''
 let warning = ''
 let playing = true
+let gameMode = 'human' // 'human' or 'cpu'
+let cpu = '' // 'x' or 'o' when playing vs cpu
 
 document.querySelector('.reset').addEventListener('click', reset)
 document.querySelectorAll('.item').forEach(item => {
     item.addEventListener('click', itemClick)
+})
+
+// Controls
+const modeSelect = document.getElementById('mode')
+const starterSelect = document.getElementById('starter')
+
+if(modeSelect) modeSelect.addEventListener('change', (e) => {
+    gameMode = e.target.value
+    reset()
+})
+
+if(starterSelect) starterSelect.addEventListener('change', (e) => {
+    // on change, just reset to apply selection
+    reset()
 })
 
 function itemClick(event) {
@@ -18,14 +34,35 @@ function itemClick(event) {
         square[item] = player
         renderSquare()
         togglePlayer()
+        // se após o toggle for a vez do CPU, joga
+        if(playing && gameMode === 'cpu' && player === cpu) {
+            setTimeout(cpuMove, 400)
+        }
     }
 }
 
 function reset() {
     warning = ''
 
-    let random = Math.floor(Math.random() * 2)
-    player = (random === 0) ? 'x' : 'o'
+    // definir quem inicia: selecionar do controle ou aleatório
+    let starter = 'random'
+    if(starterSelect) starter = starterSelect.value
+
+    if(starter === 'random') {
+        let random = Math.floor(Math.random() * 2)
+        player = (random === 0) ? 'x' : 'o'
+    } else {
+        player = starter
+    }
+
+    // definir modo de jogo e cpu
+    if(modeSelect) gameMode = modeSelect.value
+    if(gameMode === 'cpu') {
+        // o jogador humano será sempre o oposto de quem o CPU usa
+        cpu = (player === 'x') ? 'o' : 'x'
+    } else {
+        cpu = ''
+    }
 
     for(let i in square) {
         square[i] = ''
@@ -35,6 +72,11 @@ function reset() {
     
     renderSquare()
     renderInfo()
+
+    // se o CPU inicia, ele deve fazer o primeiro movimento
+    if(playing && gameMode === 'cpu' && player === cpu) {
+        setTimeout(cpuMove, 400)
+    }
 }
 
 function renderSquare() {
@@ -55,6 +97,54 @@ function renderInfo() {
 function togglePlayer() {
     player = (player === 'x') ? 'o' : 'x'
     renderInfo()
+}
+
+function emptySquares() {
+    return Object.keys(square).filter(k => square[k] === '')
+}
+
+function cpuMove() {
+    if(!playing) return
+    if(gameMode !== 'cpu') return
+    if(!cpu) return
+    if(player !== cpu) return
+
+    let empties = emptySquares()
+    if(empties.length === 0) return
+
+    // tenta ganhar
+    for(let i=0;i<empties.length;i++) {
+        let key = empties[i]
+        square[key] = cpu
+        if(checkWinnerFor(cpu)) {
+            renderSquare()
+            // não togglear aqui — renderSquare chama checkGame
+            togglePlayer()
+            return
+        }
+        square[key] = ''
+    }
+
+    // tenta bloquear
+    let opponent = cpu === 'x' ? 'o' : 'x'
+    for(let i=0;i<empties.length;i++) {
+        let key = empties[i]
+        square[key] = opponent
+        if(checkWinnerFor(opponent)) {
+            // bloquear colocando cpu aqui
+            square[key] = cpu
+            renderSquare()
+            togglePlayer()
+            return
+        }
+        square[key] = ''
+    }
+
+    // senão escolhe aleatório
+    let choice = empties[Math.floor(Math.random()*empties.length)]
+    square[choice] = cpu
+    renderSquare()
+    togglePlayer()
 }
 
 function checkGame() {
